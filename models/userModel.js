@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
 
 const userSchema = mongoose.Schema(
   {
@@ -54,6 +55,36 @@ const userSchema = mongoose.Schema(
   },
   { timestamps: true }
 );
+
+//math pas
+userSchema.methods.matchPassword = async function (enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
+};
+
+// encrypt user password before saving to database
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) {
+    return next();
+  }
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+  next();
+});
+
+// ensure only one adres
+userSchema.pre("save", function (next) {
+  if (this.isModified("adresses")) {
+    const defaultAdresses = this.adresses.find((addr) => addr.isDefault);
+    if (defaultAdresses) {
+      this.adresses.forEach((addr) => {
+        if (addr !== defaultAdresses) {
+          addr.isDefault = false;
+        }
+      });
+    }
+  }
+  next();
+});
 
 const User = mongoose.model("User", userSchema);
 

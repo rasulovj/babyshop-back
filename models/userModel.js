@@ -25,7 +25,7 @@ const userSchema = mongoose.Schema(
       enum: ["user", "admin", "deliveryman"],
       default: "user",
     },
-    adresses: [
+    addresses: [
       {
         street: {
           type: String,
@@ -49,8 +49,26 @@ const userSchema = mongoose.Schema(
         },
       },
     ],
-    //wishlist
-    //cart
+    wishlits: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Product",
+      },
+    ],
+    cart: [
+      {
+        productId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Product",
+          required: true,
+        },
+        quantity: {
+          type: Number,
+          required: true,
+          min: 1,
+        },
+      },
+    ],
     //orders
   },
   { timestamps: true }
@@ -71,13 +89,13 @@ userSchema.pre("save", async function (next) {
   next();
 });
 
-// ensure only one adres
+// ensure only one addres
 userSchema.pre("save", function (next) {
-  if (this.isModified("adresses")) {
-    const defaultAdresses = this.adresses.find((addr) => addr.isDefault);
-    if (defaultAdresses) {
-      this.adresses.forEach((addr) => {
-        if (addr !== defaultAdresses) {
+  if (this.isModified("addresses")) {
+    const defaultaddresses = this.addresses.find((addr) => addr.isDefault);
+    if (defaultaddresses) {
+      this.addresses.forEach((addr) => {
+        if (addr !== defaultaddresses) {
           addr.isDefault = false;
         }
       });

@@ -2,9 +2,12 @@ import dotenv from "dotenv";
 import express from "express";
 import morgan from "morgan";
 import cors from "cors";
+import swaggerUi from "swagger-ui-express";
 import connectDb from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 import errorHandler from "./middlewares/errorMiddleware.js";
+import { specs } from "./config/swagger.js";
 
 dotenv.config();
 connectDb();
@@ -18,6 +21,7 @@ const allowedOrigins = [
 
   "http://localhost:3000",
   "http://localhost:5173",
+  "http://localhost:8000",
 ].filter(Boolean);
 
 app.use(
@@ -45,8 +49,20 @@ app.use(express.json());
 app.use(morgan("dev"));
 
 //routes
-
 app.use("/api/auth/", authRoutes);
+app.use("/api/users/", userRoutes);
+
+//api documentation
+app.use(
+  "/api/docs",
+  swaggerUi.serve,
+  swaggerUi.setup(specs, {
+    explorer: true,
+    customCss: ".swagger-ui .topbar { display: none }",
+    customSiteTitle: "Babymart Api Documentation",
+  })
+);
+
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });

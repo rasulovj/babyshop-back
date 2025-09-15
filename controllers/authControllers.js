@@ -15,7 +15,7 @@ export const registerUser = asyncHandler(async (req, res) => {
     email,
     password,
     role,
-    adresses: [],
+    addresses: [],
   });
 
   if (user) {
@@ -25,7 +25,7 @@ export const registerUser = asyncHandler(async (req, res) => {
       email: user.email,
       avatar: user.avatar,
       role: user.role,
-      adresses: user.adresses,
+      addresses: user.addresses,
     });
   } else {
     res.status(400);
@@ -47,7 +47,7 @@ export const loginUser = asyncHandler(async (req, res) => {
       email: user.email,
       avatar: user.avatar,
       role: user.role,
-      adresses: user.adresses || [],
+      addresses: user.addresses || [],
       token: generateToken(user._id),
     });
   } else {
@@ -57,5 +57,31 @@ export const loginUser = asyncHandler(async (req, res) => {
 
   res.status(201).json({
     message: "Login succesfully",
+  });
+});
+
+export const getUserProfile = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+
+  if (user) {
+    res.status(200).json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      avatar: user.avatar,
+      role: user.role,
+      addresses: user.addresses || [],
+    });
+  } else {
+    console.error("User not found with this ID");
+    res.status(404);
+    throw new Error("User not found");
+  }
+});
+
+export const logoutUser = asyncHandler(async (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Logout succesfully",
   });
 });

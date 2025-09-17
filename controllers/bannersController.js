@@ -1,89 +1,106 @@
 import asyncHandler from "express-async-handler";
-import Brand from "../models/brandModel.js";
+import Banner from "../models/bannerModel.js";
 import cloudinary from "../config/cloudinary.js";
 
-// @desc Get all brands
-// @route GET /api/brands
-// @access Private
-
-export const getBrands = asyncHandler(async (req, res) => {
-  const brands = await Brand.find({});
-  res.json(brands);
+const getBanners = asyncHandler(async (req, res) => {
+  const banners = await Banner.find({});
+  res.json(banners);
 });
 
-// @desc Get a brand by ID
-// @route POST /api/brands
-// @access Private/Admin
+const getBannerById = asyncHandler(async (req, res) => {
+  const banner = await Banner.findById(req.params.id);
 
-export const getBrandById = asyncHandler(async (req, res) => {
-  const brand = await Brand.findById(req.params.id);
-  if (brand) {
-    res.json(brand);
+  if (banner) {
+    res.json(banner);
   } else {
     res.status(404);
-    throw new Error("Brand not found");
+    throw new Error("Banner not found");
   }
 });
 
-// @desc Create a brand
-// @route POST /api/brands
-// @access Private/Admin
+const createBanner = asyncHandler(async (req, res) => {
+  const { name, title, startFrom, image, bannerType } = req.body;
 
-export const createBrand = asyncHandler(async (req, res) => {
-  const { name, image } = req.body;
-  const brandExists = await Brand.findOne({ name });
-  if (brandExists) {
+  const bannerExists = await Banner.findOne({ name });
+  if (bannerExists) {
     res.status(400);
-    throw new Error("Brand with this name already exists");
+    throw new Error("Same banner already exists");
   }
+
   let imageUrl = "";
   if (image) {
     const result = await cloudinary.uploader.upload(image, {
-      folder: "admin-dashboard/brands",
+      folder: "admin-dashboard/banners",
     });
     imageUrl = result.secure_url;
   }
-  const brand = await Brand.create({ name, image: imageUrl || undefined });
-  if (brand) {
-    res.status(201).json(brand);
+
+  const banner = new Banner({
+    name,
+    title,
+    startFrom,
+    image: imageUrl,
+    bannerType,
+  });
+
+  const createdBanner = await banner.save();
+  if (createBanner) {
+    res.status(201).json(createdBanner);
   } else {
     res.status(400);
-    throw new Error("Could not create this brand");
+    throw new Error("Invalid banner data");
   }
 });
 
-export const updateBrand = asyncHandler(async (req, res) => {
-  const { name, image } = req.body;
-  const brand = await Brand.findById(req.params.id);
-  if (brand) {
-    brand.name = name || brand.name;
+const updateBanner = asyncHandler(async (req, res) => {
+  const { name, title, startFrom, image, bannerType } = req.body;
 
-    if (image !== undefined) {
-      if (image) {
-        const result = await cloudinary.uploader.upload(image, {
-          folder: "admin-dashboard/brands",
-        });
-        brand.image = result.secure_url;
-      } else {
-        brand.image = undefined;
+  const banner = await Banner.findById(req.params.id);
+
+  if (banner) {
+    banner.name = name || banner.name;
+    banner.title = title || banner.title;
+    banner.startFrom = startFrom || banner.startFrom;
+    banner.bannerType = bannerType || banner.bannerType;
+
+    try {
+      if (image !== undefined) {
+        if (image) {
+          const result = await cloudinary.uploader.upload(image, {
+            folder: "admin-dashboard/banners",
+          });
+          brand.image = result.secure_url;
+        } else {
+          brand.image = undefined;
+        }
       }
+      const updatedBanner = await banner.save();
+      res.json(updatedBanner);
+    } catch (error) {
+      if (error.name === "ValidationError") {
+        const errors = Object.values(error.errors).map((err) => err.message);
+        res.status(400);
+        throw new Error(errors.join(", "));
+      }
+      res.status(400);
+      throw new Error("Invalid banner data");
     }
-
-    const updatedBrand = await brand.save();
-    res.json(updatedBrand);
   } else {
     res.status(404);
-    throw new Error("Brand not found");
+    throw new Error("Banner not found");
   }
 });
 
-export const deleteBrand = asyncHandler(async (req, res) => {
-  const brand = await Brand.findById(req.params.id);
-  if (brand) {
-    await brand.deleteOne();
-    res.json({ message: "Brand removed" });
+const deleteBanner = asyncHandler(async (req, res) => {
+  const banner = await Banner.findById(req.params.id);
+
+  if (banner) {
+    await banner.deleteOne();
+    res.json({ message: "Banner removed" });
   } else {
     res.status(404);
-    throw new Error("Brand not found");
+    throw new Error("Banner not found");
   }
 });
+
+export { getBanners, getBannerById, createBanner, updateBanner, deleteBanner };

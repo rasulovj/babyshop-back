@@ -4,20 +4,27 @@ import morgan from "morgan";
 import cors from "cors";
 import swaggerUi from "swagger-ui-express";
 import connectDb from "./config/db.js";
+import errorHandler from "./middlewares/errorMiddleware.js";
+import { specs } from "./config/swagger.js";
+
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import brandRoutes from "./routes/brandRoutes.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
-import errorHandler from "./middlewares/errorMiddleware.js";
-import { specs } from "./config/swagger.js";
+import bannerRoutes from "./routes/bannerRoutes.js";
+import statsRoutes from "./routes/statsRoute.js";
+import orderRoutes from "./routes/orderRoute.js";
+import wishlistRoutes from "./routes/wishlistRoute.js";
+import cartRoutes from "./routes/cartRoute.js";
+import analyticsRoutes from "./routes/analyticsRoute.js";
+import paymentRoutes from "./routes/paymentRoute.js";
 
 dotenv.config();
 connectDb();
 
 const app = express();
 
-//cors
 const allowedOrigins = [
   process.env.ADMIN_URL,
   process.env.CLIENT_URL,
@@ -42,6 +49,7 @@ app.use(
         callback(new Error("Not allowed by CORS"));
       }
     },
+
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -57,6 +65,13 @@ app.use("/api/users/", userRoutes);
 app.use("/api/brands/", brandRoutes);
 app.use("/api/categories/", categoryRoutes);
 app.use("/api/products/", productRoutes);
+app.use("/api/banners", bannerRoutes);
+app.use("/api/stats", statsRoutes);
+app.use("/api/orders", orderRoutes);
+app.use("/api/wishlist", wishlistRoutes);
+app.use("/api/cart", cartRoutes);
+app.use("/api/analytics", analyticsRoutes);
+app.use("/api/payment", paymentRoutes);
 
 //api documentation
 app.use(

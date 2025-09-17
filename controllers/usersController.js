@@ -12,11 +12,13 @@ export const getUsers = asyncHandler(async (req, res) => {
 
 export const createUsers = asyncHandler(async (req, res) => {
   const { name, email, password, role, addresses } = req.body;
+
   const excitingUser = await User.findOne({ email });
   if (excitingUser) {
     res.status(400);
     throw new Error("User already exist, please login");
   }
+
   const user = await User.create({
     name,
     email,
@@ -59,16 +61,19 @@ export const updateUser = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error("User not found");
   }
+
   user.name = req.body.name || user.name;
+
   if (req.body.password) {
     user.password = req.body.password;
   }
+
   if (req.body.role) {
     user.role = req.body.role;
   }
+
   user.addresses = req.body.addresses || user.addresses;
 
-  //avatar
   const updatedUser = await user.save();
 
   res.status(200).json({
@@ -83,28 +88,36 @@ export const updateUser = asyncHandler(async (req, res) => {
 
 export const deleteUser = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id);
+
   if (user) {
     await user.deleteOne();
-    res.status(200).json({ message: "User accoung deleted" });
+    res.status(200).json({ message: "User account deleted" });
+  } else {
+    res.status(404);
+    throw new Error("User not found");
   }
 });
 
 export const addAddress = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id);
+
   if (!user) {
     res.status(404);
     throw new Error("User not found");
   }
+
   if (user._id.toString() !== req.user._id.toString()) {
     res.status(401);
     throw new Error("You are not authorized to add address to this user");
   }
+
   const { street, city, country, postalCode, isDefault } = req.body;
 
   if (!street || !city || !country || !postalCode) {
     res.status(400);
     throw new Error("Please provide all required fields");
   }
+
   if (isDefault) {
     user.addresses.forEach((address) => (address.isDefault = false));
   }

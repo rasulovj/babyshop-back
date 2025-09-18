@@ -28,6 +28,7 @@ const app = express();
 const allowedOrigins = [
   process.env.ADMIN_URL,
   process.env.CLIENT_URL,
+  process.env.PRODUCTION_SERVER_URL,
 
   "http://localhost:3000",
   "http://localhost:5173",
